@@ -88,3 +88,9 @@ promotions:
       - result: passed
         branch:
           - master
+  - name: Deploy to stubbed-int
+    pipeline_file: deploy-int.yml
+    auto_promote_on:
+      - result: passed
+        branch:
+          - master
