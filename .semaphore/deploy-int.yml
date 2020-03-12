@@ -28,3 +28,10 @@ blocks:
             - ls
             - cd cucumber-tests
             - mvn verify -Dcucumber.options="--strict --tags @int --plugin pretty classpath:features"
+promotions:
+  - name: Deploy to production
+      pipeline_file: deploy-prod.yml
+      auto_promote_on:
+        - result: passed
+          branch:
+            - master

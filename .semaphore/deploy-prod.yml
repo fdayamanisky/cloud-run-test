@@ -1,0 +1,18 @@
+version: v1.0
+name: Deploy to production
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Deploy to production
+    dependencies: ["run fts", "run ints"]
+    task:
+      secrets:
+        - name: GCP_PROD
+      jobs:
+        - name: run deploy
+          commands:
+            - gcloud auth activate-service-account --key-file=.secrets/gcp-prod.json
+            - gcloud auth configure-docker -q
+            - gcloud run deploy cloud-run-prod --project semaphore-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
