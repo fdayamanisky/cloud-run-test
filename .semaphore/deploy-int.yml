@@ -17,7 +17,7 @@ blocks:
             - gcloud auth configure-docker -q
             - gcloud run deploy cloud-run-test-int --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
   - name: ft
-    dependencies: ["Deploy to stubbed int"]
+    dependencies: ["Deploy to stubbed integration"]
     task:
       prologue:
         commands:
