@@ -52,7 +52,7 @@ blocks:
             - cd cucumber-tests
             - mvn verify -Dcucumber.options="--strict --tags @int --plugin pretty classpath:features"
   - name: "Build and Push Image"
-    dependencies: ["Deploy to stubbed integration","Deploy to stubbed functional"]
+    dependencies: ["Run functional tests","Run integration tests"]
     task:
       secrets:
         - name: GCP_PROD
@@ -69,8 +69,8 @@ blocks:
             # Replace with your GCP Project ID
             - ls
             - cd application
-            - docker build -t "gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}" .
-            - docker push "gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}"
+            - docker build -t "gcr.io/semaphore-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}" .
+            - docker push "gcr.io/semaphore-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}"
   - name: "Deploy application to prod"
     dependencies: ["Build and Push Image"]
     task:
