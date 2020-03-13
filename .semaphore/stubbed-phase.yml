@@ -51,6 +51,37 @@ blocks:
             - ls
             - cd cucumber-tests
             - mvn verify -Dcucumber.options="--strict --tags @int --plugin pretty classpath:features"
+  - name: "Build and Push Image"
+      dependencies: ["Deploy to stubbed integration","Deploy to stubbed functional"]
+      task:
+        secrets:
+          - name: GCP_PROD
+        prologue:
+          commands:
+            # Authenticate using the file injected from the secret
+            - gcloud auth activate-service-account --key-file=.secrets/gcp-prod.json
+            # Don't forget -q to silence confirmation prompts
+            - gcloud auth configure-docker -q
+            - checkout
+        jobs:
+          - name: Docker build
+            commands:
+              # Replace with your GCP Project ID
+              - ls
+              - cd application
+              - docker build -t "gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}" .
+              - docker push "gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}"
+      - name: "Deploy application"
+        dependencies: ["Build and Push Image"]
+        task:
+          secrets:
+            - name: GCP
+          jobs:
+            - name: deploy app
+              commands:
+                - gcloud auth activate-service-account --key-file=.secrets/gcp.json
+                - gcloud auth configure-docker -q
+                - gcloud run deploy cloud-run-test-app --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
 promotions:
   # Deployment to staging can be trigger manually:
   - name: Deploy to production

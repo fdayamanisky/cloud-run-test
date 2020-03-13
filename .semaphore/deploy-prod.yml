@@ -14,4 +14,4 @@ blocks:
           commands:
             - gcloud auth activate-service-account --key-file=.secrets/gcp-prod.json
             - gcloud auth configure-docker -q
-            - gcloud run deploy cloud-run-prod --project semaphore-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
+            - gcloud run deploy cloud-run-prod --project semaphore-spike --image gcr.io/semaphore-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
