@@ -79,7 +79,7 @@ blocks:
          commands:
            - gcloud auth activate-service-account --key-file=.secrets/gcp.json
            - gcloud auth configure-docker -q
-           - gcloud run deploy cloud-run-test-prod --project semaphore-spike --image gcr.io/semaphore-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
+           - gcloud run deploy cloud-run-test --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
 promotions:
   # Deployment to staging can be trigger manually:
   - name: Deploy to functional and stubbed int
