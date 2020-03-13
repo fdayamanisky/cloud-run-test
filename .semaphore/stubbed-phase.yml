@@ -5,7 +5,7 @@ agent:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
-  - name: Deploy to stubbed functional
+  - name: Deploy to stubbed environments
     dependencies: []
     task:
       secrets:
@@ -16,36 +16,22 @@ blocks:
             - gcloud auth activate-service-account --key-file=.secrets/gcp.json
             - gcloud auth configure-docker -q
             - gcloud run deploy cloud-run-test-ft --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
-  - name: Run functional tests
-    dependencies: ["Deploy to stubbed functional"]
+        - name: Deploy integration service
+          commands:
+              - gcloud auth activate-service-account --key-file=.secrets/gcp.json
+              - gcloud auth configure-docker -q
+              - gcloud run deploy cloud-run-test-int --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
+  - name: Run tests
+    dependencies: ["Deploy functional service", "Deploy integration service"]
     task:
-      prologue:
-        commands:
-          - checkout
+      secrets:
+        - name: GCP
       jobs:
         - name: run functional tests
           commands:
             - ls
             - cd cucumber-tests
             - mvn verify -Dcucumber.options="--strict --tags @ft --plugin pretty classpath:features"
-  - name: Deploy to stubbed integration
-    dependencies: []
-    task:
-      secrets:
-        - name: GCP
-      jobs:
-        - name: Deploy integration service
-          commands:
-            - gcloud auth activate-service-account --key-file=.secrets/gcp.json
-            - gcloud auth configure-docker -q
-            - gcloud run deploy cloud-run-test-int --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
-  - name: Run integration tests
-    dependencies: ["Deploy to stubbed integration"]
-    task:
-      prologue:
-        commands:
-          - checkout
-      jobs:
         - name: run integration tests
           commands:
             - ls
