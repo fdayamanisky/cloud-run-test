@@ -71,17 +71,17 @@ blocks:
               - cd application
               - docker build -t "gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}" .
               - docker push "gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}"
-      - name: "Deploy application"
-        dependencies: ["Build and Push Image"]
-        task:
-          secrets:
-            - name: GCP
-          jobs:
-            - name: deploy app
-              commands:
-                - gcloud auth activate-service-account --key-file=.secrets/gcp.json
-                - gcloud auth configure-docker -q
-                - gcloud run deploy cloud-run-test-app --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
+  - name: "Deploy application to prod"
+    dependencies: ["Build and Push Image"]
+    task:
+      secrets:
+        - name: GCP
+      jobs:
+        - name: deploy app
+          commands:
+            - gcloud auth activate-service-account --key-file=.secrets/gcp.json
+            - gcloud auth configure-docker -q
+            - gcloud run deploy cloud-run-test-app --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
 promotions:
   # Deployment to staging can be trigger manually:
   - name: Deploy to production
