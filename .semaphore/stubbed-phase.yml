@@ -71,7 +71,7 @@ blocks:
             - cd application
             - docker build -t "gcr.io/semaphore-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}" .
             - docker push "gcr.io/semaphore-spike/cloud-run-prod:${SEMAPHORE_GIT_SHA:0:7}"
-  - name: "Deploy application to prod"
+  - name: "Save image to production registry"
     dependencies: ["Build and Push Image"]
     task:
       secrets:
