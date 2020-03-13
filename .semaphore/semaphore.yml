@@ -49,7 +49,7 @@ blocks:
         - name: Unit tests
           commands:
             - mvn test
-  - name: "Push Image"
+  - name: "Build and Push Image"
     dependencies: ["Test"]
     task:
       secrets:
@@ -70,7 +70,7 @@ blocks:
             - docker build -t "gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7}" .
             - docker push "gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7}"
   - name: "Deploy application"
-    dependencies: ["Push Image"]
+    dependencies: ["Build and Push Image"]
     task:
      secrets:
        - name: GCP
@@ -82,20 +82,8 @@ blocks:
            - gcloud run deploy cloud-run-test-app --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
 promotions:
   # Deployment to staging can be trigger manually:
-  - name: Deploy to functional
-    pipeline_file: deploy-functional.yml
-    auto_promote_on:
-      - result: passed
-        branch:
-          - master
-  - name: Deploy to stubbed integration
-    pipeline_file: deploy-int.yml
-    auto_promote_on:
-      - result: passed
-        branch:
-          - master
-  - name: Deploy to production
-    pipeline_file: deploy-prod.yml
+  - name: Deploy to functional and stubbed int
+    pipeline_file: stubbed-phase.yml
     auto_promote_on:
       - result: passed
         branch:

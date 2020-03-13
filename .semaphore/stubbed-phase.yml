@@ -1,0 +1,61 @@
+version: v1.0
+name: Deploy to stubbed functional
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Deploy to stubbed functional
+    dependencies: []
+    task:
+      secrets:
+        - name: GCP
+      jobs:
+        - name: Deploy functional service
+          commands:
+            - gcloud auth activate-service-account --key-file=.secrets/gcp.json
+            - gcloud auth configure-docker -q
+            - gcloud run deploy cloud-run-test-ft --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
+  - name: Run functional tests
+    dependencies: ["Deploy to stubbed functional"]
+    task:
+      prologue:
+        commands:
+          - checkout
+      jobs:
+        - name: run functional tests
+          commands:
+            - ls
+            - cd cucumber-tests
+            - mvn verify -Dcucumber.options="--strict --tags @ft --plugin pretty classpath:features"
+  - name: Deploy to stubbed integration
+      dependencies: []
+      task:
+        secrets:
+          - name: GCP
+        jobs:
+          - name: Deploy integration service
+            commands:
+              - gcloud auth activate-service-account --key-file=.secrets/gcp.json
+              - gcloud auth configure-docker -q
+              - gcloud run deploy cloud-run-test-int --project pipeline-spike --image gcr.io/pipeline-spike/cloud-run-test:${SEMAPHORE_GIT_SHA:0:7} --region europe-west4 --platform managed
+  - name: Run integration tests
+    dependencies: ["Deploy to stubbed integration"]
+    task:
+      prologue:
+        commands:
+          - checkout
+      jobs:
+        - name: run integration tests
+          commands:
+            - ls
+            - cd cucumber-tests
+            - mvn verify -Dcucumber.options="--strict --tags @int --plugin pretty classpath:features"
+promotions:
+  # Deployment to staging can be trigger manually:
+  - name: Deploy to production
+    pipeline_file: deploy-prod.yml
+    auto_promote_on:
+      - result: passed
+        branch:
+          - master
